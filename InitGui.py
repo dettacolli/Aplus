@@ -56,10 +56,12 @@ class AplusWorkbench (Workbench):
         else:
             import ap_Resources3
         import ap_lib
-        import ap_importpart
+        import ap_command_createproduct
+        import ap_command_importpart
 
         partCommands = [
-            'ap_ImportPart',
+            'ap_createProduct_command',
+            'ap_importPart_command',
             ]
 
         self.appendToolbar(

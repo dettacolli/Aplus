@@ -36,7 +36,7 @@ Add a part from an external file
 to the assembly
 '''
 
-class ap_ImportPartCommand():
+class ap_importPart_command():
 
     def GetResources(self):
         return {'Pixmap'  : ap_lib.pathOfModule()+'/icons/ap_ImportPart.svg',
@@ -52,12 +52,19 @@ class ap_ImportPartCommand():
     def IsActive(self):
         doc = FreeCAD.activeDocument()
         if doc == None: return False
-        return True
+        countProducts = 0
+        for ob in doc.Objects:
+            if ob.Name.startswith('Product'):
+                countProducts += 1
+        if countProducts == 1: 
+            return True
+        else:
+            return False
 
     def GuiViewFit(self):
         FreeCADGui.SendMsgToActiveView("ViewFit")
 
 
-FreeCADGui.addCommand('ap_ImportPart',ap_ImportPartCommand())
+FreeCADGui.addCommand('ap_importPart_command',ap_importPart_command())
 #==============================================================================
 
