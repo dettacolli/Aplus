@@ -26,6 +26,7 @@ import FreeCADGui,FreeCAD
 from PySide import QtGui, QtCore
 import os, copy, time, sys, platform
 import ap_lib
+import ap_component
 
 PYVERSION =  sys.version_info[0]
 
@@ -47,7 +48,12 @@ class ap_importPart_command():
 
     def Activated(self):
         print(u"importPartCommand activated")
-        pass
+        doc = FreeCAD.activeDocument()
+        newObj = doc.addObject("Part::FeaturePython",'Component')
+        ap_component.ap_component(newObj)
+        if FreeCAD.GuiUp:
+            ap_component.vp_ap_component(newObj.ViewObject)
+        newObj.purgeTouched()
 
     def IsActive(self):
         doc = FreeCAD.activeDocument()
