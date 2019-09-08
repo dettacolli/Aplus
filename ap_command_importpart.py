@@ -105,7 +105,7 @@ class ap_importPart_command(QtGui.QDialog):
                     selOb.purgeTouched()
                     component.SourceFile = filename
                     self.workingDoc = doc
-                    self.workingComponent = component,
+                    self.workingComponent = component
                     self.fileName = filename
                     self.addLinkToComponent()
                     self.drawUI()
@@ -156,9 +156,9 @@ class ap_importPart_command(QtGui.QDialog):
         doc = FreeCAD.activeDocument()
         selection = [s for s in FreeCADGui.Selection.getSelectionEx() if s.Document == doc ]
         self.switchBackDocument()
-        link = self.workingDoc.addObject("App::Link",'LinkedObject')
-        link.LinkedObject = selection[0]
-        self.workingComponent.addObject(link)
+        link = self.workingComponent.newObject("App::Link","LinkObj")
+        link.LinkedObject = selection[0].Object
+        link.recompute()
         self.close()
         
     def drawUI(self):
