@@ -53,12 +53,30 @@ class ap_importPart_command():
             selOb = selection[0].Object
             try:
                 if selOb.Proxy.type == 'ap_product':
+
+                    dialog = QtGui.QFileDialog(
+                        QtGui.QApplication.activeWindow(),
+                        "Select FreeCAD document to import part from"
+                        )
+                    # set option "DontUseNativeDialog"=True, as native Filedialog shows
+                    # misbehavior on Unbuntu 18.04 LTS. It works case sensitively, what is not wanted...
+                    dialog.setOption(QtGui.QFileDialog.DontUseNativeDialog, True)        
+                    dialog.setNameFilter("Supported Formats (*.FCStd *.stp *.step);;All files (*.*)")
+                    if dialog.exec_():
+                        if PYVERSION < 3:
+                            filename = unicode(dialog.selectedFiles()[0])
+                        else:
+                            filename = str(dialog.selectedFiles()[0])
+                    else:
+                        return
+                    
                     component = doc.addObject("Part::FeaturePython",'Component')
                     ap_component.ap_component(component)
                     if FreeCAD.GuiUp:
                         ap_component.vp_ap_component(component.ViewObject)
                     selOb.addObject(component)
                     selOb.purgeTouched()
+                    component.SourceFile = filename
                     component.purgeTouched()
                     return
             except:
