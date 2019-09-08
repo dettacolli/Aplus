@@ -30,6 +30,32 @@ import ap_component
 
 PYVERSION =  sys.version_info[0]
 
+
+#==============================================================================
+def addLinkToComponent(workingDoc,workingComponent,fileName):
+    importDocIsOpen = False
+    requestedFile = os.path.split(fileName)[1]
+    for d in FreeCAD.listDocuments().values():
+        recentFile = os.path.split(d.FileName)[1]
+        print(recentFile)
+        if requestedFile == recentFile:
+            importDoc = d # file is already open...
+            importDocIsOpen = True
+            break
+    
+    if not importDocIsOpen:
+        FreeCAD.open(fileName)
+    else:
+        name = importDoc.Name
+        # Search and activate the corresponding document window..
+        mw=FreeCADGui.getMainWindow()
+        mdi=mw.findChild(QtGui.QMdiArea)
+        sub=mdi.subWindowList()
+        for s in sub:
+            mdi.setActiveSubWindow(s)
+            if FreeCAD.activeDocument().Name == name: break
+            
+    FreeCADGui.Selection.clearSelection()
 #==============================================================================
 toolTip = \
 '''
@@ -37,7 +63,10 @@ Add a part from an external file
 to the assembly
 '''
 
-class ap_importPart_command():
+class ap_importPart_command(QtGui.QDialog):
+
+    def __init__(self):
+        super(ap_importPart_command,self).__init__()
 
     def GetResources(self):
         return {'Pixmap'  : ap_lib.pathOfModule()+'/icons/ap_ImportPart.svg',
@@ -53,7 +82,6 @@ class ap_importPart_command():
             selOb = selection[0].Object
             try:
                 if selOb.Proxy.type == 'ap_product':
-
                     dialog = QtGui.QFileDialog(
                         QtGui.QApplication.activeWindow(),
                         "Select FreeCAD document to import part from"
@@ -69,7 +97,6 @@ class ap_importPart_command():
                             filename = str(dialog.selectedFiles()[0])
                     else:
                         return
-                    
                     component = doc.addObject("Part::FeaturePython",'Component')
                     ap_component.ap_component(component)
                     if FreeCAD.GuiUp:
@@ -77,6 +104,12 @@ class ap_importPart_command():
                     selOb.addObject(component)
                     selOb.purgeTouched()
                     component.SourceFile = filename
+                    self.workingDoc = doc
+                    self.workingComponent = component,
+                    self.fileName = filename
+                    self.addLinkToComponent()
+                    self.drawUI()
+                    self.show()
                     component.purgeTouched()
                     return
             except:
@@ -86,7 +119,6 @@ class ap_importPart_command():
            u"Message",
            u'''First create and select a product object'''
            )
-
     
     def IsActive(self):
         doc = FreeCAD.activeDocument()
@@ -102,6 +134,56 @@ class ap_importPart_command():
 
     def GuiViewFit(self):
         FreeCADGui.SendMsgToActiveView("ViewFit")
+
+    def addLinkToComponent(self):
+        addLinkToComponent(self.workingDoc, self.workingComponent, self.fileName) #non member func for later reuse
+        
+    def switchBackDocument(self):
+        name = self.workingDoc.Name
+        # Search and activate the corresponding document window..
+        mw=FreeCADGui.getMainWindow()
+        mdi=mw.findChild(QtGui.QMdiArea)
+        sub=mdi.subWindowList()
+        for s in sub:
+            mdi.setActiveSubWindow(s)
+            if FreeCAD.activeDocument().Name == name: break
+        
+    def onCancel(self):
+        self.switchBackDocument()
+        self.close()
+    
+    def onOK(self):
+        self.switchBackDocument()
+        self.close()
+        
+    def drawUI(self):
+        self.setModal(False)
+        self.setWindowFlags( QtCore.Qt.WindowStaysOnTopHint )
+        self.setWindowTitle('Insert a Link')
+        self.setMinimumSize(400, 200)
+        self.resize(400,200)
+        
+        # label
+        self.labelMain = QtGui.QLabel(self)
+        self.labelMain.setText("Select exactly one object to be linked\nand hit the OK-Button")
+        self.labelMain.move(10,20)
+        #self.Layout.addWidget(self.labelMain)
+        
+        # Cancel button
+        self.CancelBtn = QtGui.QPushButton('Cancel', self)
+        self.CancelBtn.setAutoDefault(False)
+        self.CancelBtn.move(10, 150)
+
+        # create Link button
+        self.okBtn = QtGui.QPushButton('OK', self)
+        self.okBtn.move(285, 150)
+        self.okBtn.setDefault(True)
+        
+        self.CancelBtn.clicked.connect(self.onCancel)
+        self.okBtn.clicked.connect(self.onOK)
+        
+        
+        
 
 
 FreeCADGui.addCommand('ap_importPart_command',ap_importPart_command())
