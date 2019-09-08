@@ -43,15 +43,15 @@ class ap_component(object):
     def __init__(self, obInstance):
         obInstance.addExtension('App::GeoFeatureGroupExtensionPython', self)
         obInstance.deleteContent = ap_component_deleteContent # add a function to this featurepython class
-        
+        obInstance.Proxy = self
         ap_component.setProperties(self,obInstance)
         self.type = "ap_component"
 
     def setProperties(self,obj):
         propList = obj.PropertiesList
-        #if not "a2p_Version" in propList:
-        #    obj.addProperty("App::PropertyString", "a2p_Version", "importPart")
-        #    obj.a2p_Version = A2P_VERSION
+        if not "SourceFile" in propList:
+            obj.addProperty("App::PropertyString", "SourceFile")
+            obj.SourceFile = ""
         self.type = "ap_component"
 
     def onDocumentRestored(self,obj):

@@ -47,21 +47,29 @@ class ap_importPart_command():
                 }
 
     def Activated(self):
-        print(u"ap_createComponent activated")
         doc = FreeCAD.activeDocument()
         selection = [s for s in FreeCADGui.Selection.getSelectionEx() if s.Document == doc ]
         if len(selection) > 0:
-            selOb = selection[0]
-            if hasattr(selOb,'type') and selOb.type == 'ap_product':
-                component = doc.addObject("Part::FeaturePython",'Component')
-                ap_component.ap_component(component)
-                if FreeCAD.GuiUp:
-                    ap_component.vp_ap_component(component.ViewObject)
-                selOb.addObject(component)
-                component.purgeTouched()
-        else:
-            print("adding a component failed!")
+            selOb = selection[0].Object
+            try:
+                if selOb.Proxy.type == 'ap_product':
+                    component = doc.addObject("Part::FeaturePython",'Component')
+                    ap_component.ap_component(component)
+                    if FreeCAD.GuiUp:
+                        ap_component.vp_ap_component(component.ViewObject)
+                    selOb.addObject(component)
+                    selOb.purgeTouched()
+                    component.purgeTouched()
+                    return
+            except:
+                pass
+        QtGui.QMessageBox.information(
+            QtGui.QApplication.activeWindow(),
+           u"Message",
+           u'''First create and select a product object'''
+           )
 
+    
     def IsActive(self):
         doc = FreeCAD.activeDocument()
         if doc == None: return False

@@ -49,18 +49,11 @@ class ap_createProduct_command():
     def Activated(self):
         print(u"ap_createProduct activated")
         doc = FreeCAD.activeDocument()
-        selection = [s for s in FreeCADGui.Selection.getSelectionEx() if s.Document == doc ]
-        if len(selection) > 0:
-            selOb = selection[0]
-            if hasattr(selOb,'type') and selOb.type == 'ap_product':
-                component = doc.addObject("Part::FeaturePython",'Product')
-                ap_product.ap_product(component)
-                if FreeCAD.GuiUp:
-                    ap_product.vp_ap_product(component.ViewObject)
-                selOb.addObject(component)
-                component.purgeTouched()
-        else:
-            print("adding a component failed!")
+        newObj = doc.addObject("Part::FeaturePython",'Product')
+        ap_product.ap_product(newObj)
+        if FreeCAD.GuiUp:
+            ap_product.vp_ap_product(newObj.ViewObject)
+        newObj.purgeTouched()
 
     def IsActive(self):
         doc = FreeCAD.activeDocument()
@@ -72,4 +65,3 @@ class ap_createProduct_command():
 
 FreeCADGui.addCommand('ap_createProduct_command',ap_createProduct_command())
 #==============================================================================
-
