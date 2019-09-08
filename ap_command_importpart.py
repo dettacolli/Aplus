@@ -47,13 +47,20 @@ class ap_importPart_command():
                 }
 
     def Activated(self):
-        print(u"importPartCommand activated")
+        print(u"ap_createComponent activated")
         doc = FreeCAD.activeDocument()
-        newObj = doc.addObject("Part::FeaturePython",'Component')
-        ap_component.ap_component(newObj)
-        if FreeCAD.GuiUp:
-            ap_component.vp_ap_component(newObj.ViewObject)
-        newObj.purgeTouched()
+        selection = [s for s in FreeCADGui.Selection.getSelectionEx() if s.Document == doc ]
+        if len(selection) > 0:
+            selOb = selection[0]
+            if hasattr(selOb,'type') and selOb.type == 'ap_product':
+                component = doc.addObject("Part::FeaturePython",'Component')
+                ap_component.ap_component(component)
+                if FreeCAD.GuiUp:
+                    ap_component.vp_ap_component(component.ViewObject)
+                selOb.addObject(component)
+                component.purgeTouched()
+        else:
+            print("adding a component failed!")
 
     def IsActive(self):
         doc = FreeCAD.activeDocument()

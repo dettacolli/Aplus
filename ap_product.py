@@ -69,8 +69,6 @@ class vp_ap_product(object):
         vobj.addExtension('Gui::ViewProviderGeoFeatureGroupExtensionPython', self)
         vobj.Proxy = self
 
-
-
     def attach(self, vobj):
         self.ViewObject = vobj
         self.Object = vobj.Object

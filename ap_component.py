@@ -27,9 +27,22 @@ import FreeCAD
 import FreeCADGui
 
 #==============================================================================
+def ap_component_deleteContent(_self,doc):
+    '''
+    ap_product featurepython extending function deleteContent
+    '''
+    if len(_self.Group) > 0:
+        deleteList = []
+        deleteList.extend(_self.Group)
+        _self.Group = []
+        for ob in deleteList:
+            doc.removeObject(ob.Name) # delete all components of the assembly'
+
+#==============================================================================
 class ap_component(object):
     def __init__(self, obInstance):
-        obInstance.addExtension('App::LinkExtensionPython', self)
+        obInstance.addExtension('App::GeoFeatureGroupExtensionPython', self)
+        obInstance.deleteContent = ap_component_deleteContent # add a function to this featurepython class
         
         ap_component.setProperties(self,obInstance)
         self.type = "ap_component"
@@ -54,9 +67,9 @@ class ap_component(object):
 #==============================================================================
 class vp_ap_component(object):
     def __init__(self,vobj):
-        #vobj.addExtension('Gui::ViewProviderGeoFeatureGroupExtensionPython', self)
         #vobj.addExtension('Gui::ViewProviderLinkExtensionPython', self)
         #vobj.addExtension('Gui::ViewProviderLinkPython', self)
+        vobj.addExtension('Gui::ViewProviderGeoFeatureGroupExtensionPython', self)
         vobj.Proxy = self
 
     def attach(self, vobj):
@@ -64,13 +77,15 @@ class vp_ap_component(object):
         self.Object = vobj.Object
         
         # restore lost functions to featurePython object during reload
-        #if not hasattr(self.Object,'deleteContent'):
-        #    pass
-        #    self.Object.deleteContent = ap_product_deleteContent
+        if not hasattr(self.Object,'deleteContent'):
+            self.Object.deleteContent = ap_component_deleteContent
 
     def onDelete(self, viewObject, subelements): # subelements is a tuple of strings
         if FreeCAD.activeDocument() != viewObject.Object.Document:
             return False # only delete objects in the active Document anytime !!
+        obj = viewObject.Object
+        doc = obj.Document
+        obj.deleteContent(doc) # Clean up this group complete with all content
         return True
 
     def getIcon(self):
