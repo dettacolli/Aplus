@@ -32,7 +32,7 @@ PYVERSION =  sys.version_info[0]
 
 
 #==============================================================================
-def addLinkToComponent(workingDoc,workingComponent,fileName):
+def activateImportFile(workingDoc,workingComponent,fileName):
     importDocIsOpen = False
     requestedFile = os.path.split(fileName)[1]
     for d in FreeCAD.listDocuments().values():
@@ -136,7 +136,7 @@ class ap_importPart_command(QtGui.QDialog):
         FreeCADGui.SendMsgToActiveView("ViewFit")
 
     def addLinkToComponent(self):
-        addLinkToComponent(self.workingDoc, self.workingComponent, self.fileName) #non member func for later reuse
+        activateImportFile(self.workingDoc, self.workingComponent, self.fileName) #non member func for later reuse
         
     def switchBackDocument(self):
         name = self.workingDoc.Name
@@ -153,15 +153,20 @@ class ap_importPart_command(QtGui.QDialog):
         self.close()
     
     def onOK(self):
+        doc = FreeCAD.activeDocument()
+        selection = [s for s in FreeCADGui.Selection.getSelectionEx() if s.Document == doc ]
         self.switchBackDocument()
+        link = self.workingDoc.addObject("App::Link",'LinkedObject')
+        link.LinkedObject = selection[0]
+        self.workingComponent.addObject(link)
         self.close()
         
     def drawUI(self):
         self.setModal(False)
         self.setWindowFlags( QtCore.Qt.WindowStaysOnTopHint )
         self.setWindowTitle('Insert a Link')
-        self.setMinimumSize(400, 200)
-        self.resize(400,200)
+        self.setMinimumSize(400, 150)
+        self.resize(400,150)
         
         # label
         self.labelMain = QtGui.QLabel(self)
@@ -172,11 +177,11 @@ class ap_importPart_command(QtGui.QDialog):
         # Cancel button
         self.CancelBtn = QtGui.QPushButton('Cancel', self)
         self.CancelBtn.setAutoDefault(False)
-        self.CancelBtn.move(10, 150)
+        self.CancelBtn.move(10, 100)
 
         # create Link button
         self.okBtn = QtGui.QPushButton('OK', self)
-        self.okBtn.move(285, 150)
+        self.okBtn.move(285, 100)
         self.okBtn.setDefault(True)
         
         self.CancelBtn.clicked.connect(self.onCancel)
